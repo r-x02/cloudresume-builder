@@ -348,6 +348,11 @@ export default function HomePage() {
             </p>
             <p>No data stored. Your information stays in your browser.</p>
           </div>
+          <div className="mt-2 pt-2 border-t text-center">
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} CloudResume. All rights reserved.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
