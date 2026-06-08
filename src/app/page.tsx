@@ -6,6 +6,7 @@ import { PersonalInfoSection } from "@/components/resume/personal-info-section";
 import { SummarySection } from "@/components/resume/summary-section";
 import { ExperienceSection } from "@/components/resume/experience-section";
 import { EducationSection } from "@/components/resume/education-section";
+import { ProjectsSection } from "@/components/resume/projects-section";
 import { SkillsSection } from "@/components/resume/skills-section";
 import { ResumePreview } from "@/components/resume/resume-preview";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import {
   Shield,
   Zap,
   RotateCcw,
+  FolderGit2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,6 +32,7 @@ const FORM_TABS = [
   { value: "summary", label: "Summary", icon: FileText },
   { value: "experience", label: "Experience", icon: Cloud },
   { value: "education", label: "Education", icon: Shield },
+  { value: "projects", label: "Projects", icon: FolderGit2 },
   { value: "skills", label: "Skills", icon: Zap },
 ];
 
@@ -37,12 +40,12 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState("personal");
   const [generating, setGenerating] = useState<"pdf" | "docx" | null>(null);
   const [generated, setGenerated] = useState<"pdf" | "docx" | null>(null);
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const resetResume = useResumeStore((s) => s.resetResume);
 
   const handleGenerate = async (format: "pdf" | "docx") => {
     const resume = useResumeStore.getState();
 
-    // Validate minimum data
     if (!resume.personalInfo.fullName || !resume.personalInfo.email) {
       toast.error("Please fill in your name and email at minimum");
       return;
@@ -68,7 +71,8 @@ export default function HomePage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const safeName = resume.personalInfo.fullName.replace(/\s+/g, "_") || "resume";
+      const safeName =
+        resume.personalInfo.fullName.replace(/\s+/g, "_") || "resume";
       a.download = `${safeName}_Resume.${format}`;
       document.body.appendChild(a);
       a.click();
@@ -91,7 +95,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen flex flex-col bg-[#faf8f4]">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -117,7 +121,7 @@ export default function HomePage() {
                 className="text-xs text-muted-foreground"
               >
                 <RotateCcw className="size-3.5 mr-1" />
-                Reset
+                <span className="hidden sm:inline">Reset</span>
               </Button>
               <Button
                 variant="outline"
@@ -179,7 +183,7 @@ export default function HomePage() {
                   Cloud Engineer Focus
                 </span>
                 <span className="px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                  PDF & DOC Export
+                  PDF &amp; DOC Export
                 </span>
                 <span className="px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
                   Real-time Preview
@@ -198,9 +202,7 @@ export default function HomePage() {
                       className="flex-1 min-w-0 text-xs gap-1 px-2 py-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
                     >
                       <tab.icon className="size-3.5 shrink-0" />
-                      <span className="truncate hidden sm:inline">
-                        {tab.label}
-                      </span>
+                      <span className="truncate">{tab.label}</span>
                     </TabsTrigger>
                   ))}
                 </TabsList>
@@ -217,15 +219,51 @@ export default function HomePage() {
                 <TabsContent value="education" className="mt-0">
                   <EducationSection />
                 </TabsContent>
+                <TabsContent value="projects" className="mt-0">
+                  <ProjectsSection />
+                </TabsContent>
                 <TabsContent value="skills" className="mt-0">
                   <SkillsSection />
                 </TabsContent>
               </Tabs>
             </div>
+
+            {/* Mobile Download Bar — visible only on mobile/tablet, hidden on lg+ */}
+            <div className="lg:hidden sticky bottom-4 z-40">
+              <div className="bg-white rounded-xl border shadow-lg p-3 flex gap-2">
+                <Button
+                  size="sm"
+                  disabled={generating === "pdf"}
+                  onClick={() => handleGenerate("pdf")}
+                  className="flex-1"
+                >
+                  {generating === "pdf" ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Download className="size-3.5" />
+                  )}
+                  Generate PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={generating === "docx"}
+                  onClick={() => handleGenerate("docx")}
+                  className="flex-1"
+                >
+                  {generating === "docx" ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <FileSpreadsheet className="size-3.5" />
+                  )}
+                  Generate DOC
+                </Button>
+              </div>
+            </div>
           </div>
 
-          {/* Right: Preview */}
-          <div className="space-y-4">
+          {/* Right: Preview — hidden on mobile, shown on lg+ */}
+          <div className="hidden lg:block space-y-4">
             <div className="bg-white rounded-xl border p-4 lg:sticky lg:top-[72px]">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -281,13 +319,33 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* Mobile Preview Toggle */}
+        <div className="lg:hidden mt-4">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setMobilePreviewOpen(!mobilePreviewOpen)}
+          >
+            <Eye className="size-4 mr-2" />
+            {mobilePreviewOpen ? "Hide Preview" : "Show Preview"}
+          </Button>
+          {mobilePreviewOpen && (
+            <div className="mt-4 bg-white rounded-xl border p-4">
+              <ResumePreview />
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Footer */}
       <footer className="border-t bg-white mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-            <p>CloudResume Builder — ATS-Friendly Resume Generator for Cloud Engineers</p>
+            <p>
+              CloudResume Builder — ATS-Friendly Resume Generator for Cloud
+              Engineers
+            </p>
             <p>No data stored. Your information stays in your browser.</p>
           </div>
         </div>

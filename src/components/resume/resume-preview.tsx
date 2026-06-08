@@ -11,6 +11,7 @@ export function ResumePreview() {
     resume.summary ||
     resume.experience.some((e) => e.jobTitle || e.company) ||
     resume.education.some((e) => e.degree || e.institution) ||
+    resume.projects.some((p) => p.name) ||
     resume.skills.some((s) => s.skills);
 
   if (!hasContent) {
@@ -39,16 +40,28 @@ export function ResumePreview() {
     );
   }
 
-  const { personalInfo, summary, experience, education, skills, certifications } =
-    resume;
+  const {
+    personalInfo,
+    summary,
+    experience,
+    education,
+    projects,
+    skills,
+    certifications,
+  } = resume;
 
   const certLines = certifications
     .split("\n")
     .map((c) => c.trim())
     .filter(Boolean);
 
+  const validProjects = projects.filter((p) => p.name);
+
   return (
-    <div className="bg-white text-gray-900 shadow-sm border rounded-lg p-6 md:p-8 min-h-[600px] font-sans text-[13px] leading-relaxed">
+    <div
+      className="bg-white text-gray-900 shadow-sm border rounded-lg p-6 md:p-8 text-[13px] leading-relaxed"
+      style={{ fontFamily: "Cambria, Georgia, 'Times New Roman', serif" }}
+    >
       {/* Header */}
       <div className="text-center mb-4">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">
@@ -61,7 +74,9 @@ export function ResumePreview() {
           {personalInfo.location && <span>{personalInfo.location}</span>}
           {personalInfo.email && (
             <>
-              {personalInfo.location && <span className="text-gray-300">|</span>}
+              {personalInfo.location && (
+                <span className="text-gray-300">|</span>
+              )}
               <span>{personalInfo.email}</span>
             </>
           )}
@@ -129,7 +144,9 @@ export function ResumePreview() {
                       )}
                     </div>
                     <div className="text-xs text-gray-500 shrink-0 mt-0.5 sm:mt-0">
-                      {[exp.startDate, exp.endDate].filter(Boolean).join(" – ")}
+                      {[exp.startDate, exp.endDate]
+                        .filter(Boolean)
+                        .join(" \u2013 ")}
                       {exp.location && ` | ${exp.location}`}
                     </div>
                   </div>
@@ -158,7 +175,7 @@ export function ResumePreview() {
             .filter((e) => e.degree || e.institution)
             .map((edu) => (
               <div key={edu.id} className="mb-2 last:mb-0">
-                <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-x-4 gap-y-0">
                   <div>
                     <span className="font-semibold text-gray-900">
                       {edu.degree}
@@ -170,8 +187,10 @@ export function ResumePreview() {
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-gray-500 shrink-0 mt-0.5 sm:mt-0">
-                    {[edu.startDate, edu.endDate].filter(Boolean).join(" – ")}
+                  <div className="text-xs text-gray-500 shrink-0">
+                    {[edu.startDate, edu.endDate]
+                      .filter(Boolean)
+                      .join(" \u2013 ")}
                   </div>
                 </div>
                 {edu.honors && (
@@ -182,23 +201,61 @@ export function ResumePreview() {
         </div>
       )}
 
+      {/* Projects */}
+      {validProjects.length > 0 && (
+        <div className="mb-5">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-800 mb-3">
+            Projects
+          </h2>
+          {validProjects.map((proj) => (
+            <div key={proj.id} className="mb-3 last:mb-0">
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between">
+                <div>
+                  <span className="font-semibold text-gray-900">
+                    {proj.name}
+                  </span>
+                  {proj.link && (
+                    <span className="text-gray-500 text-xs ml-2">
+                      {proj.link}
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-500 shrink-0 mt-0.5 sm:mt-0">
+                  {[proj.startDate, proj.endDate]
+                    .filter(Boolean)
+                    .join(" \u2013 ")}
+                </div>
+              </div>
+              {proj.technologies && (
+                <p className="text-xs text-gray-500 mt-0.5 italic">
+                  {proj.technologies}
+                </p>
+              )}
+              {proj.description && (
+                <p className="text-gray-700 mt-1 leading-relaxed">
+                  {proj.description}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Skills */}
       {skills.some((s) => s.skills) && (
         <div className="mb-5">
           <h2 className="text-xs font-bold uppercase tracking-wider text-gray-800 mb-3">
             Technical Skills
           </h2>
-          <div className="space-y-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
             {skills
               .filter((s) => s.skills)
               .map((skill) => (
-                <div key={skill.id} className="flex gap-2">
+                <div key={skill.id} className="flex gap-1">
                   <span className="font-semibold text-gray-800 shrink-0">
                     {skill.category}:
                   </span>
-                  <span className="text-gray-700">
-                    {skill.skills}
-                  </span>
+                  <span className="text-gray-700">{skill.skills}</span>
                 </div>
               ))}
           </div>

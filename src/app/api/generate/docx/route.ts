@@ -7,8 +7,14 @@ import {
   HeadingLevel,
   AlignmentType,
   BorderStyle,
+  TabStopType,
+  TabStopPosition,
 } from "docx";
 import type { ResumeData } from "@/types/resume";
+
+const EN_DASH = "\u2013";
+const EM_DASH = "\u2014";
+const FONT_NAME = "Cambria";
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,8 +29,8 @@ export async function POST(request: NextRequest) {
           new TextRun({
             text: data.personalInfo.fullName || "Your Name",
             bold: true,
-            size: 48, // 24pt
-            font: "Calibri",
+            size: 48,
+            font: FONT_NAME,
             color: "1a1a1a",
           }),
         ],
@@ -40,8 +46,8 @@ export async function POST(request: NextRequest) {
           children: [
             new TextRun({
               text: data.personalInfo.jobTitle,
-              size: 24, // 12pt
-              font: "Calibri",
+              size: 24,
+              font: FONT_NAME,
               color: "555555",
             }),
           ],
@@ -66,8 +72,8 @@ export async function POST(request: NextRequest) {
           children: [
             new TextRun({
               text: contactParts.join(" | "),
-              size: 20, // 10pt
-              font: "Calibri",
+              size: 20,
+              font: FONT_NAME,
               color: "666666",
             }),
           ],
@@ -88,8 +94,8 @@ export async function POST(request: NextRequest) {
             new TextRun({
               text: text.toUpperCase(),
               bold: true,
-              size: 22, // 11pt
-              font: "Calibri",
+              size: 22,
+              font: FONT_NAME,
               color: "1a1a1a",
             }),
           ],
@@ -102,6 +108,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ── Helper: Two-column line (title left, date right) ──
+    function twoColumnLine(
+      leftParts: { text: string; bold?: boolean; color?: string }[],
+      rightText: string
+    ) {
+      children.push(
+        new Paragraph({
+          children: [
+            ...leftParts.map((p) =>
+              new TextRun({
+                text: p.text,
+                bold: p.bold !== false,
+                size: 22,
+                font: FONT_NAME,
+                color: p.color || "1a1a1a",
+              })
+            ),
+            new TextRun({
+              text: rightText,
+              italics: true,
+              size: 20,
+              font: FONT_NAME,
+              color: "666666",
+              break: 1,
+            }),
+          ],
+          spacing: { after: 40 },
+        })
+      );
+    }
+
     // ── Professional Summary ──
     if (data.summary) {
       sectionHeading("Professional Summary");
@@ -110,8 +147,8 @@ export async function POST(request: NextRequest) {
           children: [
             new TextRun({
               text: data.summary,
-              size: 21, // 10.5pt
-              font: "Calibri",
+              size: 21,
+              font: FONT_NAME,
               color: "333333",
             }),
           ],
@@ -128,50 +165,15 @@ export async function POST(request: NextRequest) {
       sectionHeading("Professional Experience");
 
       for (const exp of validExperience) {
-        // Job title and company
         const titleLine = [exp.jobTitle, exp.company]
           .filter(Boolean)
-          .join(" — ");
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: titleLine,
-                bold: true,
-                size: 22,
-                font: "Calibri",
-                color: "1a1a1a",
-              }),
-            ],
-            spacing: { before: 120, after: 40 },
-          })
-        );
-
-        // Dates and location
-        const dateParts: string[] = [];
-        if (exp.startDate) dateParts.push(exp.startDate);
-        if (exp.endDate) dateParts.push(exp.endDate);
-        const dateStr = dateParts.join(" – ");
+          .join(" " + EM_DASH + " ");
+        const dateParts = [exp.startDate, exp.endDate].filter(Boolean);
+        const dateStr = dateParts.join(" " + EN_DASH + " ");
         const metaParts = [dateStr, exp.location].filter(Boolean).join(" | ");
 
-        if (metaParts) {
-          children.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: metaParts,
-                  italics: true,
-                  size: 20,
-                  font: "Calibri",
-                  color: "666666",
-                }),
-              ],
-              spacing: { after: 60 },
-            })
-          );
-        }
+        twoColumnLine([{ text: titleLine }], metaParts);
 
-        // Bullet points
         const bullets = exp.bullets.filter((b) => b.trim());
         for (const bullet of bullets) {
           children.push(
@@ -180,7 +182,7 @@ export async function POST(request: NextRequest) {
                 new TextRun({
                   text: bullet,
                   size: 21,
-                  font: "Calibri",
+                  font: FONT_NAME,
                   color: "333333",
                 }),
               ],
@@ -202,43 +204,11 @@ export async function POST(request: NextRequest) {
       for (const edu of validEducation) {
         const degreeLine = [edu.degree, edu.institution]
           .filter(Boolean)
-          .join(" — ");
-        children.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: degreeLine,
-                bold: true,
-                size: 22,
-                font: "Calibri",
-                color: "1a1a1a",
-              }),
-            ],
-            spacing: { before: 80, after: 40 },
-          })
-        );
+          .join(" " + EM_DASH + " ");
+        const eduDateParts = [edu.startDate, edu.endDate].filter(Boolean);
+        const eduDateStr = eduDateParts.join(" " + EN_DASH + " ");
 
-        const eduDateParts: string[] = [];
-        if (edu.startDate) eduDateParts.push(edu.startDate);
-        if (edu.endDate) eduDateParts.push(edu.endDate);
-        const eduDateStr = eduDateParts.join(" – ");
-
-        if (eduDateStr) {
-          children.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: eduDateStr,
-                  italics: true,
-                  size: 20,
-                  font: "Calibri",
-                  color: "666666",
-                }),
-              ],
-              spacing: { after: 20 },
-            })
-          );
-        }
+        twoColumnLine([{ text: degreeLine }], eduDateStr);
 
         if (edu.honors) {
           children.push(
@@ -247,8 +217,55 @@ export async function POST(request: NextRequest) {
                 new TextRun({
                   text: edu.honors,
                   size: 20,
-                  font: "Calibri",
+                  font: FONT_NAME,
                   color: "444444",
+                }),
+              ],
+              spacing: { after: 40 },
+            })
+          );
+        }
+      }
+    }
+
+    // ── Projects ──
+    const validProjects = data.projects.filter((p) => p.name);
+    if (validProjects.length > 0) {
+      sectionHeading("Projects");
+
+      for (const proj of validProjects) {
+        const projDateParts = [proj.startDate, proj.endDate].filter(Boolean);
+        const projDateStr = projDateParts.join(" " + EN_DASH + " ");
+
+        const nameParts = [{ text: proj.name }];
+        twoColumnLine(nameParts, projDateStr);
+
+        if (proj.technologies) {
+          children.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: proj.technologies,
+                  italics: true,
+                  size: 20,
+                  font: FONT_NAME,
+                  color: "666666",
+                }),
+              ],
+              spacing: { after: 40 },
+            })
+          );
+        }
+
+        if (proj.description) {
+          children.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: proj.description,
+                  size: 21,
+                  font: FONT_NAME,
+                  color: "333333",
                 }),
               ],
               spacing: { after: 40 },
@@ -271,13 +288,13 @@ export async function POST(request: NextRequest) {
                 text: `${skill.category}: `,
                 bold: true,
                 size: 21,
-                font: "Calibri",
+                font: FONT_NAME,
                 color: "1a1a1a",
               }),
               new TextRun({
                 text: skill.skills,
                 size: 21,
-                font: "Calibri",
+                font: FONT_NAME,
                 color: "333333",
               }),
             ],
@@ -303,7 +320,7 @@ export async function POST(request: NextRequest) {
               new TextRun({
                 text: cert,
                 size: 21,
-                font: "Calibri",
+                font: FONT_NAME,
                 color: "333333",
               }),
             ],
@@ -321,7 +338,7 @@ export async function POST(request: NextRequest) {
           properties: {
             page: {
               margin: {
-                top: 720, // 0.5 inch
+                top: 720,
                 bottom: 720,
                 left: 720,
                 right: 720,

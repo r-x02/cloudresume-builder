@@ -6,9 +6,22 @@ import { Label } from "@/components/ui/label";
 import { FileText } from "lucide-react";
 import { CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
+const MAX_WORDS = 100;
+
 export function SummarySection() {
   const summary = useResumeStore((s) => s.summary);
   const setSummary = useResumeStore((s) => s.setSummary);
+
+  const wordCount = summary
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+
+  const isOverLimit = wordCount > MAX_WORDS;
+
+  const handleChange = (value: string) => {
+    setSummary(value);
+  };
 
   return (
     <div className="space-y-4">
@@ -25,14 +38,23 @@ export function SummarySection() {
           </Label>
           <Textarea
             id="summary"
-            placeholder="Results-driven Cloud Engineer with 8+ years of experience designing, deploying, and managing scalable cloud infrastructure across AWS, Azure, and GCP. Proven track record of reducing operational costs by 40% through infrastructure optimization and automation. Expert in containerization, Kubernetes orchestration, and CI/CD pipeline development with a strong focus on security best practices and compliance frameworks."
+            placeholder="Results-driven Cloud Engineer with 8+ years of experience designing, deploying, and managing scalable cloud infrastructure across AWS, Azure, and GCP. Proven track record of reducing operational costs by 40% through infrastructure optimization and automation."
             className="min-h-[120px] resize-y"
             value={summary}
-            onChange={(e) => setSummary(e.target.value)}
+            onChange={(e) => handleChange(e.target.value)}
           />
-          <p className="text-xs text-muted-foreground">
-            Keep it to 2-4 sentences. Focus on key achievements and core competencies that match your target role.
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              Keep it concise. Focus on key achievements and core competencies.
+            </p>
+            <p
+              className={`text-xs font-medium tabular-nums ${
+                isOverLimit ? "text-destructive" : "text-muted-foreground"
+              }`}
+            >
+              {wordCount}/{MAX_WORDS} words
+            </p>
+          </div>
         </div>
       </CardContent>
     </div>

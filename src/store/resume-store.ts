@@ -4,6 +4,7 @@ import type {
   PersonalInfo,
   WorkExperience,
   Education,
+  Project,
   SkillCategory,
 } from "@/types/resume";
 
@@ -47,6 +48,18 @@ const defaultEducation: Education[] = [
   },
 ];
 
+const defaultProjects: Project[] = [
+  {
+    id: uid(),
+    name: "",
+    description: "",
+    technologies: "",
+    link: "",
+    startDate: "",
+    endDate: "",
+  },
+];
+
 const defaultSkills: SkillCategory[] = [
   { id: uid(), category: "Cloud Platforms", skills: "" },
   { id: uid(), category: "DevOps & CI/CD", skills: "" },
@@ -59,6 +72,7 @@ const defaultState: ResumeData = {
   summary: "",
   experience: defaultExperience,
   education: defaultEducation,
+  projects: defaultProjects,
   skills: defaultSkills,
   certifications: "",
 };
@@ -75,6 +89,9 @@ interface ResumeStore extends ResumeData {
   addEducation: () => void;
   updateEducation: (id: string, data: Partial<Education>) => void;
   removeEducation: (id: string) => void;
+  addProject: () => void;
+  updateProject: (id: string, data: Partial<Project>) => void;
+  removeProject: (id: string) => void;
   addSkill: () => void;
   updateSkill: (id: string, data: Partial<SkillCategory>) => void;
   removeSkill: (id: string) => void;
@@ -149,6 +166,24 @@ export const useResumeStore = create<ResumeStore>((set) => ({
   removeEducation: (id) =>
     set((s) => ({
       education: s.education.filter((e) => e.id !== id),
+    })),
+
+  addProject: () =>
+    set((s) => ({
+      projects: [
+        ...s.projects,
+        { id: uid(), name: "", description: "", technologies: "", link: "", startDate: "", endDate: "" },
+      ],
+    })),
+
+  updateProject: (id, data) =>
+    set((s) => ({
+      projects: s.projects.map((p) => (p.id === id ? { ...p, ...data } : p)),
+    })),
+
+  removeProject: (id) =>
+    set((s) => ({
+      projects: s.projects.filter((p) => p.id !== id),
     })),
 
   addSkill: () =>

@@ -10,12 +10,16 @@ const PDF_SCRIPT = path.join(
   "skills/pdf/scripts/html2pdf-next.js"
 );
 
+const EN_DASH = "\u2013"; // –
+const EM_DASH = "\u2014"; // —
+
 function generateResumeHTML(data: ResumeData): string {
-  const { personalInfo, summary, experience, education, skills, certifications } =
+  const { personalInfo, summary, experience, education, projects, skills, certifications } =
     data;
 
   const validExperience = experience.filter((e) => e.jobTitle || e.company);
   const validEducation = education.filter((e) => e.degree || e.institution);
+  const validProjects = projects.filter((p) => p.name);
   const validSkills = skills.filter((s) => s.skills.trim());
   const certLines = certifications
     .split("\n")
@@ -36,8 +40,12 @@ function generateResumeHTML(data: ResumeData): string {
       padding: 0;
       box-sizing: border-box;
     }
+    html, body {
+      min-height: auto;
+      height: auto;
+    }
     body {
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-family: "Cambria", "Georgia", "Times New Roman", serif;
       font-size: 10pt;
       line-height: 1.5;
       color: #333333;
@@ -70,6 +78,9 @@ function generateResumeHTML(data: ResumeData): string {
     .section {
       margin-bottom: 14pt;
     }
+    .section:last-child {
+      margin-bottom: 0;
+    }
     .section-title {
       font-size: 10pt;
       font-weight: 700;
@@ -88,6 +99,9 @@ function generateResumeHTML(data: ResumeData): string {
     .experience-item {
       margin-bottom: 10pt;
     }
+    .experience-item:last-child {
+      margin-bottom: 0;
+    }
     .experience-header {
       display: flex;
       justify-content: space-between;
@@ -97,6 +111,7 @@ function generateResumeHTML(data: ResumeData): string {
       font-size: 10.5pt;
       font-weight: 700;
       color: #1a1a1a;
+      flex: 1;
     }
     .experience-meta {
       font-size: 9pt;
@@ -104,6 +119,7 @@ function generateResumeHTML(data: ResumeData): string {
       font-style: italic;
       text-align: right;
       white-space: nowrap;
+      margin-left: 12pt;
     }
     .experience-bullets {
       margin-top: 4pt;
@@ -118,6 +134,9 @@ function generateResumeHTML(data: ResumeData): string {
     .education-item {
       margin-bottom: 8pt;
     }
+    .education-item:last-child {
+      margin-bottom: 0;
+    }
     .education-header {
       display: flex;
       justify-content: space-between;
@@ -127,16 +146,61 @@ function generateResumeHTML(data: ResumeData): string {
       font-size: 10.5pt;
       font-weight: 700;
       color: #1a1a1a;
+      flex: 1;
     }
     .education-date {
       font-size: 9pt;
       color: #666666;
       font-style: italic;
+      white-space: nowrap;
+      margin-left: 12pt;
     }
     .education-honors {
       font-size: 9pt;
       color: #444444;
       margin-top: 2pt;
+    }
+    .project-item {
+      margin-bottom: 10pt;
+    }
+    .project-item:last-child {
+      margin-bottom: 0;
+    }
+    .project-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .project-name {
+      font-size: 10.5pt;
+      font-weight: 700;
+      color: #1a1a1a;
+      flex: 1;
+    }
+    .project-date {
+      font-size: 9pt;
+      color: #666666;
+      font-style: italic;
+      white-space: nowrap;
+      margin-left: 12pt;
+    }
+    .project-tech {
+      font-size: 9pt;
+      color: #666666;
+      font-style: italic;
+      margin-top: 2pt;
+    }
+    .project-desc {
+      font-size: 9.5pt;
+      line-height: 1.5;
+      color: #333333;
+      margin-top: 4pt;
+    }
+    .skills-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 16pt;
+      row-gap: 4pt;
     }
     .skill-row {
       margin-bottom: 3pt;
@@ -189,13 +253,13 @@ function generateResumeHTML(data: ResumeData): string {
       .map((exp) => {
         const bullets = exp.bullets.filter((b) => b.trim());
         const dateParts = [exp.startDate, exp.endDate].filter(Boolean);
-        const dateStr = dateParts.join(" \\u2013 ");
+        const dateStr = dateParts.join(" " + EN_DASH + " ");
         const metaStr = [dateStr, exp.location].filter(Boolean).join(" | ");
 
         return `
     <div class="experience-item">
       <div class="experience-header">
-        <div class="experience-title">${escapeHtml([exp.jobTitle, exp.company].filter(Boolean).join(" \\u2014 "))}</div>
+        <div class="experience-title">${escapeHtml([exp.jobTitle, exp.company].filter(Boolean).join(" " + EM_DASH + " "))}</div>
         <div class="experience-meta">${escapeHtml(metaStr)}</div>
       </div>
       ${
@@ -220,11 +284,12 @@ function generateResumeHTML(data: ResumeData): string {
     ${validEducation
       .map((edu) => {
         const dateParts = [edu.startDate, edu.endDate].filter(Boolean);
+        const dateStr = dateParts.join(" " + EN_DASH + " ");
         return `
     <div class="education-item">
       <div class="education-header">
-        <div class="education-degree">${escapeHtml([edu.degree, edu.institution].filter(Boolean).join(" \\u2014 "))}</div>
-        <div class="education-date">${escapeHtml(dateParts.join(" \\u2013 "))}</div>
+        <div class="education-degree">${escapeHtml([edu.degree, edu.institution].filter(Boolean).join(" " + EM_DASH + " "))}</div>
+        <div class="education-date">${escapeHtml(dateStr)}</div>
       </div>
       ${
         edu.honors
@@ -239,16 +304,42 @@ function generateResumeHTML(data: ResumeData): string {
   }
 
   ${
+    validProjects.length > 0
+      ? `
+  <div class="section">
+    <div class="section-title">Projects</div>
+    ${validProjects
+      .map((proj) => {
+        const dateParts = [proj.startDate, proj.endDate].filter(Boolean);
+        const dateStr = dateParts.join(" " + EN_DASH + " ");
+        return `
+    <div class="project-item">
+      <div class="project-header">
+        <div class="project-name">${escapeHtml(proj.name)}${proj.link ? " <span style='font-size:9pt;color:#666;font-weight:normal;margin-left:8pt;'>" + escapeHtml(proj.link) + "</span>" : ""}</div>
+        <div class="project-date">${escapeHtml(dateStr)}</div>
+      </div>
+      ${proj.technologies ? `<div class="project-tech">${escapeHtml(proj.technologies)}</div>` : ""}
+      ${proj.description ? `<div class="project-desc">${escapeHtml(proj.description)}</div>` : ""}
+    </div>`;
+      })
+      .join("\n")}
+  </div>`
+      : ""
+  }
+
+  ${
     validSkills.length > 0
       ? `
   <div class="section">
     <div class="section-title">Technical Skills</div>
+    <div class="skills-grid">
     ${validSkills
       .map(
         (s) =>
           `<div class="skill-row"><span class="skill-category">${escapeHtml(s.category)}:</span> ${escapeHtml(s.skills)}</div>`
       )
       .join("\n    ")}
+    </div>
   </div>`
       : ""
   }
@@ -291,7 +382,6 @@ export async function POST(request: NextRequest) {
   try {
     const data: ResumeData = await request.json();
 
-    // Create temp HTML file
     const htmlContent = generateResumeHTML(data);
     const tmpDir = os.tmpdir();
     const tmpHtml = path.join(tmpDir, `resume_${Date.now()}.html`);
@@ -300,7 +390,6 @@ export async function POST(request: NextRequest) {
     try {
       fs.writeFileSync(tmpHtml, htmlContent, "utf-8");
 
-      // Run html2pdf-next.js to generate PDF
       if (!fs.existsSync(PDF_SCRIPT)) {
         throw new Error("PDF generation script not found");
       }
@@ -327,7 +416,6 @@ export async function POST(request: NextRequest) {
         },
       });
     } finally {
-      // Cleanup temp files
       try {
         if (fs.existsSync(tmpHtml)) fs.unlinkSync(tmpHtml);
         if (fs.existsSync(tmpPdf)) fs.unlinkSync(tmpPdf);

@@ -30,6 +30,16 @@ export interface Education {
   honors: string;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  technologies: string;
+  link: string;
+  startDate: string;
+  endDate: string;
+}
+
 export interface SkillCategory {
   id: string;
   category: string;
@@ -41,6 +51,7 @@ export interface ResumeData {
   summary: string;
   experience: WorkExperience[];
   education: Education[];
+  projects: Project[];
   skills: SkillCategory[];
   certifications: string;
 }
