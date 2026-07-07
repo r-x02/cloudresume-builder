@@ -363,7 +363,7 @@ Your support motivates further development.
 
 <div align="center">
 
-## Made with ❤️ by **Your Name**
+## Made with ❤️ by **R-X02 | Rahul Kumar**
 
 If you like this project, don't forget to ⭐ the repository.
 
