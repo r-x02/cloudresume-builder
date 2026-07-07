@@ -113,13 +113,6 @@ Showcase your hobbies and interests.
 
 ---
 
-## 👀 Live Resume Preview
-
-- Instant preview while editing
-- No page refresh required
-
----
-
 ## 📄 Export as PDF
 
 Generate a clean printable PDF version of your resume.
@@ -132,30 +125,6 @@ Generate a clean printable PDF version of your resume.
 - Mobile Friendly
 - Clean Layout
 - Fast Performance
-
----
-
-# 📸 Screenshots
-
-> Add screenshots here.
-
-```
-assets/
-    home.png
-    editor.png
-    preview.png
-    pdf.png
-```
-
-Example:
-
-```
-![Home](assets/home.png)
-
-![Editor](assets/editor.png)
-
-![Preview](assets/preview.png)
-```
 
 ---
 
